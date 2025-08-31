@@ -112,3 +112,37 @@ func (r *RecordRepository) FindById(ctx context.Context, fr models.FindRecordByI
 
 	return &record, nil
 }
+
+func (r *RecordRepository) Update(ctx context.Context, ru *models.RecordUpdate) (*models.Record, error) {
+	query, err := os.ReadFile("/queries/record/update.sql")
+
+	if err != nil {
+		return nil, err
+	}
+
+	var record models.Record
+
+	err = r.DB.QueryRowContext(
+		ctx,
+		string(query),
+		ru.RazaoSocial,
+		ru.NomeFantasia,
+		ru.Telefone,
+		ru.Email,
+		ru.Endereco,
+	).Scan(
+		&record.ID,
+		&record.RazaoSocial,
+		&record.NomeFantasia,
+		&record.CpfCnpj,
+		&record.Telefone,
+		&record.Email,
+		&record.Endereco,
+		&record.CriadoEm,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &record, nil
+}
