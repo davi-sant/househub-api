@@ -1,0 +1,32 @@
+services:
+    postgres:
+        image: postgres:16-alpine
+        container_name: pg_house_hub
+        restart: always
+        environment:
+            POSTGRES_USER: sysdba
+            POSTGRES_PASSWORD: 123
+            POSTGRES_DB: househub
+        ports:
+            - '5432:5432'
+        volumes:
+            - /Users/davisantosdias/Development/docker-data/househub/postgres_data:/var/lib/postgresql/data
+            - /Users/davisantosdias/Development/docker-data/househub/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    pgadmin:
+        image: dpage/pgadmin4:latest
+        container_name: pgadmin_househub
+        restart: always
+        environment:
+            PGADMIN_DEFAULT_EMAIL: davisantosdias@protonmail.com
+            PGADMIN_DEFAULT_PASSWORD: 123
+        ports:
+            - '8080:80'
+        volumes:
+            - /Users/davisantosdias/Development/docker-data/househub/pgadmin_data:/var/lib/pgadmin
+        depends_on:
+            - postgres
+
+volumes:
+    postgres_data:
+    pgadmin_data:
