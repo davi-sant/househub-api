@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/davi-sant/househub-go/helpers/helpErrors"
+	"github.com/davi-sant/househub-go/helpers/validations"
 	"github.com/davi-sant/househub-go/models"
 	"github.com/davi-sant/househub-go/services"
 	"github.com/gin-gonic/gin"
@@ -25,35 +25,6 @@ func NewRecordController(service *services.RecordService) *RecordController {
 	}
 }
 
-func validateRequest(input any, v *validator.Validate) []error {
-	var errorMessages []error
-
-	if err := v.Struct(input); err != nil {
-		var validationErrors validator.ValidationErrors
-		if errors.As(err, &validationErrors) {
-			for _, validationError := range validationErrors {
-				switch validationError.Tag() {
-				case "required":
-					errorMessages = append(errorMessages, fmt.Errorf("campo %s é obrigatório", validationError.Field()))
-				case "max":
-					errorMessages = append(errorMessages, fmt.Errorf("campo %s excede o tamanho permitido de %s caracteres", validationError.Field(), validationError.Param()))
-				case "min":
-					errorMessages = append(errorMessages, fmt.Errorf("campo %s deve ter pelo menos %s caracteres", validationError.Field(), validationError.Param()))
-				case "email":
-					errorMessages = append(errorMessages, fmt.Errorf("campo %s deve ser um email válido", validationError.Field()))
-				default:
-					errorMessages = append(errorMessages, fmt.Errorf("erro no campo %s: %s", validationError.Field(), validationError.Tag()))
-				}
-			}
-		} else {
-
-			errorMessages = append(errorMessages, err)
-		}
-		return errorMessages
-	}
-	return nil
-}
-
 func (r *RecordController) Create(c *gin.Context) {
 	var input models.RecordCreate
 
@@ -67,7 +38,7 @@ func (r *RecordController) Create(c *gin.Context) {
 		return
 	}
 
-	validationErrors := validateRequest(input, r.validator)
+	validationErrors := validations.ValidateRequest(input, r.validator)
 
 	if validationErrors != nil {
 
@@ -119,10 +90,8 @@ func (r *RecordController) FindAll(c *gin.Context) {
 }
 
 func (r *RecordController) FindById(c *gin.Context) {
-
-	input := models.FindRecordById{ID: c.Params.ByName("id")}
-
-	validationErrors := validateRequest(input, r.validator)
+	input := models.RecordById{ID: c.Params.ByName("id")}
+	validationErrors := validations.ValidateRequest(input, r.validator)
 
 	if validationErrors != nil {
 		c.JSON(http.StatusBadRequest, models.RecordResponseError{
@@ -161,4 +130,53 @@ func (r *RecordController) FindById(c *gin.Context) {
 		Record:   record,
 	})
 
+}
+
+func (rc *RecordController) Update(gc *gin.Context) {
+	var inputBody models.RecordUpdate
+	inputParams := models.RecordById{ID: gc.Param("id")}
+
+	if err := gc.ShouldBindJSON(&inputBody); err != nil {
+		respError := models.RecordResponseError{
+			Status:   "erro",
+			Mensagem: "erro ao fazer parse do JSON",
+			Erros:    []models.ErrorItem{},
+		}
+		gc.JSON(http.StatusBadRequest, respError)
+		return
+	}
+	vParamsBody := validations.ValidateRequest(inputParams, rc.validator)
+	if vParamsBody != nil {
+		respError := models.RecordResponseError{
+			Status:   "erro",
+			Mensagem: "erro ao validar parametrosde url.",
+			Erros:    helpErrors.ErrorItems(vParamsBody),
+		}
+		gc.JSON(http.StatusBadRequest, respError)
+		return
+	}
+	vParams := validations.ValidateRequest(inputBody, rc.validator)
+	if vParams != nil {
+		respError := models.RecordResponseError{
+			Status:   "erro",
+			Mensagem: "erro de validação na atulizaçao de registros",
+			Erros:    helpErrors.ErrorItems(vParams),
+		}
+		gc.JSON(http.StatusBadRequest, respError)
+		return
+	}
+
+	record, err := rc.service.Update(gc.Request.Context(), inputParams, inputBody)
+
+	if err != nil {
+		respError := models.RecordResponseError{
+			Status:   "erro",
+			Mensagem: fmt.Sprintf("erro ao gravar atualizações de registro %s", err),
+			Erros:    []models.ErrorItem{},
+		}
+		gc.JSON(http.StatusInternalServerError, respError)
+		return
+	}
+
+	gc.JSON(http.StatusOK, record)
 }

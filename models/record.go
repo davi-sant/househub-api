@@ -24,12 +24,11 @@ type RecordCreate struct {
 }
 
 type RecordUpdate struct {
-	RazaoSocial  string `json:"razao_social"`
-	NomeFantasia string `json:"nome_fantasia"`
-	CpfCnpj      string `json:"cpf_cnpj"`
-	Telefone     string `json:"telefone"`
-	Email        string `json:"email"`
-	Endereco     string `json:"endereco"`
+	RazaoSocial  string `json:"razao_social" validate:"required,min=3,max=200"`
+	NomeFantasia string `json:"nome_fantasia" validate:"min=3,max=200"`
+	Telefone     string `json:"telefone" validate:"required,min=11,max=20"`
+	Email        string `json:"email" validate:"required,email"`
+	Endereco     string `json:"endereco" validate:"max=500"`
 }
 
 type RecordResponse struct {
@@ -48,6 +47,6 @@ type RecordResponseError struct {
 	Erros    []ErrorItem `json:"erros,omitempty"`
 }
 
-type FindRecordById struct {
+type RecordById struct {
 	ID string `json:"id" validate:"required"`
 }

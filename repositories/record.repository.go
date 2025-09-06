@@ -90,7 +90,7 @@ func (r *RecordRepository) FindAll(ctx context.Context) ([]models.Record, error)
 	return records, nil
 }
 
-func (r *RecordRepository) FindById(ctx context.Context, fr models.FindRecordById) (*models.Record, error) {
+func (r *RecordRepository) FindById(ctx context.Context, fr models.RecordById) (*models.Record, error) {
 	query, err := os.ReadFile("queries/record/find_by_id.sql")
 	if err != nil {
 		return nil, err
@@ -113,8 +113,8 @@ func (r *RecordRepository) FindById(ctx context.Context, fr models.FindRecordByI
 	return &record, nil
 }
 
-func (r *RecordRepository) Update(ctx context.Context, ru *models.RecordUpdate) (*models.Record, error) {
-	query, err := os.ReadFile("/queries/record/update.sql")
+func (r *RecordRepository) Update(ctx context.Context, id models.RecordById, ru models.RecordUpdate) (*models.Record, error) {
+	query, err := os.ReadFile("queries/record/update.sql")
 
 	if err != nil {
 		return nil, err
@@ -130,6 +130,7 @@ func (r *RecordRepository) Update(ctx context.Context, ru *models.RecordUpdate) 
 		ru.Telefone,
 		ru.Email,
 		ru.Endereco,
+		id.ID,
 	).Scan(
 		&record.ID,
 		&record.RazaoSocial,

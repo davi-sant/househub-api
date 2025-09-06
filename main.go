@@ -53,6 +53,7 @@ func main() {
 	r.POST("/api/v1/registros", recordController.Create)
 	r.GET("/api/v1/registros", recordController.FindAll)
 	r.GET("/api/v1/:id/registros", recordController.FindById)
+	r.PUT("/api/v1/:id/registros", recordController.Update)
 
 	if err := r.Run(port); err != nil {
 		log.Fatal(err)

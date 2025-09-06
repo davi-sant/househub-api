@@ -31,8 +31,18 @@ func (s *RecordService) FindAll(ctx context.Context) ([]models.Record, error) {
 	return records, nil
 }
 
-func (s *RecordService) FindById(ctx context.Context, fr models.FindRecordById) (*models.Record, error) {
+func (s *RecordService) FindById(ctx context.Context, fr models.RecordById) (*models.Record, error) {
 	record, err := s.RecordRepository.FindById(ctx, fr)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return record, nil
+}
+
+func (s *RecordService) Update(ctx context.Context, id models.RecordById, ur models.RecordUpdate) (*models.Record, error) {
+	record, err := s.RecordRepository.Update(ctx, id, ur)
 
 	if err != nil {
 		return nil, err
