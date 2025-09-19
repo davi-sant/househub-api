@@ -149,7 +149,7 @@ func (rc *RecordController) Update(gc *gin.Context) {
 	if vParamsBody != nil {
 		respError := models.RecordResponseError{
 			Status:   "erro",
-			Mensagem: "erro ao validar parametrosde url.",
+			Mensagem: "erro ao validar paramatros da URL.",
 			Erros:    helpErrors.ErrorItems(vParamsBody),
 		}
 		gc.JSON(http.StatusBadRequest, respError)
